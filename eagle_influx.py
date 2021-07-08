@@ -2,13 +2,15 @@
 from influxdb import InfluxDBClient
 import pandas as pd
 import matplotlib.pyplot as plt
+import datetime
+import time
 
-def cmdT(type_in,time1,time2,host):
+def cmdT(type_in, time1, time2, host):
 	string = """SELECT value FROM "collectd-sv.plugin_value" WHERE host=\'{}\' AND type_instance=\'{}\' AND time > '{}' AND time < '{}';""".format(host,type_in,time1,time2)
 	return string
 
-def weather_get(time1,time2,host='192.168.10.8',interval='1min'):
-	client = InfluxDBClient(host='eagle.sai.msu.ru', port=80)
+def weather_get(time1, time2, host = '192.168.10.8', interval='1min'):
+	client = InfluxDBClient(host = 'eagle.sai.msu.ru', port=80)
 
 	# def cmdT(type_in,dtime,host):
 	# 	string = 'SELECT value FROM "collectd-sv.plugin_value" WHERE host=\'{}\' AND type_instance=\'{}\' AND time > now() - {};'.format(host,type_in,dtime)
@@ -18,17 +20,16 @@ def weather_get(time1,time2,host='192.168.10.8',interval='1min'):
 		string = """SELECT value,type_instance FROM "collectd-sv.plugin_value" WHERE host='{}' AND time >= '{}' AND time < '{}';""".format(host,time1,time2)
 		return string
 
-	data = client.query(cmd(time1,time2, host) ,database='collectd').get_points()
-	df=pd.DataFrame(data)
-	print(df)
-	df=df.set_index(pd.DatetimeIndex(df['time'])).drop(columns='time')
-	groups = df.groupby('type_instance')
-	df=groups.apply(lambda g:g.resample(interval).mean().rename(columns={'value':g.name} ) ) 
-	df.index=df.index.droplevel(0)
-	df=df.groupby(df.index).mean()
-	df=df.tz_convert('Europe/Moscow')
+	data = client.query(cmd(time1, time2, host), database='collectd').get_points()
+	result = pd.DataFrame(data)
+	result = result.set_index(pd.DatetimeIndex(result['time'])).drop(columns='time')
+	groups = result.groupby('type_instance')
+	result = groups.apply(lambda g:g.resample(interval).mean().rename(columns={'value':g.name})) 
+	result.index = result.index.droplevel(0)
+	result = result.groupby(result.index).mean()
+	result = result.tz_convert('Europe/Moscow')
 
-	return df
+	return result
 
 def get_wdata(time1,time2):
     data = weather_get(time1,time2)
@@ -36,9 +37,9 @@ def get_wdata(time1,time2):
     # Другая темпратура неба
     dtime='10h'
     client = InfluxDBClient(host='eagle.sai.msu.ru', port=80)
-    asm_t = client.query( cmdT('TEMP_SKY',time1,time2,'192.168.10.5') ,database='collectd').get_points()
-    dfA=pd.DataFrame(asm_t)
-    dfA=dfA.set_index(pd.DatetimeIndex(dfA['time'])).drop(columns='time')
+    asm_t = client.query(cmdT('TEMP_SKY', time1, time2, '192.168.10.5'), database='collectd').get_points()
+    dfA = pd.DataFrame(asm_t)
+    dfA = dfA.set_index(pd.DatetimeIndex(dfA['time'])).drop(columns='time')
     dfA = dfA.rename(columns={'value' : 'TEMP_SKY'} )
     dfA = dfA.tz_convert('Europe/Moscow')
     data = data.join(dfA.resample('1min').mean(), how = 'outer')
@@ -48,7 +49,7 @@ def get_wdata(time1,time2):
 # t_start = datetime.datetime(2020,11,30,0,0,0)
 # # t_start = datetime.datetime(2021,4,13,0,0,0)
 # ttt=time.time()
-# dt = datetime.timedelta(days=20)
+# dt = datetime.timedelta(days=1)
 # t_end = t_start + dt
 # t_data = get_wdata(t_start.isoformat()+'Z',t_end.isoformat()+'Z')
 # t_start += dt
@@ -62,8 +63,8 @@ def get_wdata(time1,time2):
 #     time.sleep(5)
 #     t_start += dt
 
-data  = pd.read_pickle('all_data.pkl')
-plt.plot(data['TEMP'],data['TEMP_SKY'],'o',markersize=0.1)
+data  = pd.read_pickle('temperature/all_data.pkl')
+plt.plot(data['TEMP'], data['TEMP_SKY'], 'o', markersize = 0.1)
 plt.show()
 
 # flist = glob.glob('/mnt/d/sci_tmp/irmaps/*2021*.fits')
