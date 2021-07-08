@@ -1,4 +1,5 @@
 import os
+from typing import Callable
 import numpy as np
 import matplotlib.pyplot as plt
 from datetime import datetime
@@ -31,36 +32,46 @@ def get_list_of_files(dirpath: str) -> list:
 
     return result
 
-dirpath = 'maps/2021/'
-filenames = get_list_of_files(dirpath)
-i = 0
+def read_all_files(dirpath: str, reader: Callable = lambda x: x):
+    '''This function reads all files and takes some data from them: for each 
+    file, reader lambda is called. Input for this lambda is read_fits() for 
+    each file. Result of this function would be tuple of dates and results of 
+    lambda for each day. By default it returns (dates, data_for_each_day)'''
+    filenames = get_list_of_files(dirpath)
+    dates = []
+    results = []
+    i = 0
 
-for filename in filenames:
-    i += 1
+    for filename in filenames:
+        i += 1
 
-    if i % 50 == 0:
-        print('{}: {}'.format(i, filename))
+        if i % 50 == 0:
+            print('{}: {}'.format(i, filename))
 
-    curr_filename = os.path.join(dirpath, filename)
-    curr_data = read_fits(curr_filename)
-    center_temp = curr_data[
-        int(curr_data.shape[0] / 2), 
-        int(curr_data.shape[1] / 2) 
+        curr_filename = os.path.join(dirpath, filename)
+        curr_data = read_fits(curr_filename)
+
+        format = 'MAP%Y-%m-%dT%H-%M-%S.%f.fits'
+        curr_date = datetime.strptime(filename, format)
+
+        dates.append(curr_date)
+        results.append(reader(curr_data))
+
+    return (dates, results)
+
+def read_temps(data: np.ndarray) -> int: 
+    return data[
+        int(data.shape[0] / 2), 
+        int(data.shape[1] / 2) 
     ]
 
-    format = 'MAP%Y-%m-%dT%H-%M-%S.%f.fits'
-    curr_date = datetime.strptime(filename, format)
+dirpath = 'maps/2021/'
 
-    dates.append(curr_date)
-    center_temps.append(center_temp)
-
-dates1 = np.array(dates)
-temps1 = np.array(center_temps)
-
-(dates2, temps2) = get_field_from_pickle('temperature/all_data.pkl', 'TEMP')
+(dates1, temps1) = read_all_files(dirpath, read_temps)
+(dates2, temps2) = get_field_from_pickle('temperature/all_data.pkl', 'TEMP_SKY')
 
 fig, (ax1, ax2) = plt.subplots(nrows = 2)
-ax1.plot(dates, center_temps, 'bo', markersize = 0.1)
+ax1.plot(dates1, temps1, 'bo', markersize = 0.1)
 ax2.plot(dates2, temps2, 'bo', markersize = 0.1)
 ax2.set_xlim(ax1.get_xlim())
 plt.show()
