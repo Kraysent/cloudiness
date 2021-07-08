@@ -6,6 +6,7 @@ def get_field_from_pickle(filename: str, field: str) -> tuple:
     data  = pd.read_pickle(filename)
     return (data.index, data[field])
 
-(dates, temperature) = get_field_from_pickle('temperature/all_data.pkl', 'TEMP_SKY')
-plt.plot(dates, temperature, 'o', markersize = 0.1)
-plt.show()
+# (dates, temperature) = get_field_from_pickle('temperature/all_data.pkl', 'TEMP')
+# plt.ylim(-25, 25)
+# plt.plot(dates, temperature, 'o', markersize = 0.1)
+# plt.show()
