@@ -47,7 +47,7 @@ def get_wdata(time1,time2):
 
 
 # t_start = datetime.datetime(2020,11,30,0,0,0)
-# # t_start = datetime.datetime(2021,4,13,0,0,0)
+# t_start = datetime.datetime(2021,4,13,0,0,0)
 # ttt=time.time()
 # dt = datetime.timedelta(days=1)
 # t_end = t_start + dt
@@ -64,7 +64,7 @@ def get_wdata(time1,time2):
 #     t_start += dt
 
 data  = pd.read_pickle('temperature/all_data.pkl')
-plt.plot(data['TEMP'], data['TEMP_SKY'], 'o', markersize = 0.1)
+plt.plot(data.index, data['TEMP_SKY'], 'o', markersize = 0.1)
 plt.show()
 
 # flist = glob.glob('/mnt/d/sci_tmp/irmaps/*2021*.fits')

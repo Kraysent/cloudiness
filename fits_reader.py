@@ -1,15 +1,19 @@
+from os import read
 import numpy as np
 import matplotlib.pyplot as plt
 from astropy.io import fits
 
+def read_fits(filename: str) -> np.ndarray:
+    return fits.getdata(filename)
+
 def plot_picture(filename: str):
-    data = fits.getdata(filename)
+    data = read_fits(filename)
     plt.imshow(data)
     plt.show()
 
 def plot_difference(filename1: str, filename2: str):
-    data1 = fits.getdata(filename1)
-    data2 = fits.getdata(filename2)
+    data1 = read_fits(filename1)
+    data2 = read_fits(filename2)
     diff = data2 - data1
     plt.imshow(diff)
     plt.show()
