@@ -33,11 +33,12 @@ def get_list_of_files(dirpath: str) -> list:
 
     return result
 
-def read_all_files(dirpath: str, reader: Callable = lambda x: x):
-    '''This function reads all files and takes some data from them: for each 
-    file, reader lambda is called. Input for this lambda is read_fits() for 
-    each file. Result of this function would be tuple of dates and results of 
-    lambda for each day. By default it returns (dates, data_for_each_day)'''
+def read_all_files(
+    dirpath: str, 
+    expression: Callable = lambda x: x, 
+    date_condition: Callable = lambda x: True, 
+    res_condition: Callable = lambda x: True
+):
     filenames = get_list_of_files(dirpath)
     dates = []
     results = []
@@ -49,38 +50,48 @@ def read_all_files(dirpath: str, reader: Callable = lambda x: x):
         if i % 50 == 0:
             print('{}: {}'.format(i, filename))
 
-        curr_filename = os.path.join(dirpath, filename)
-        curr_data = read_fits(curr_filename)
-
         format = 'MAP%Y-%m-%dT%H-%M-%S.%f.fits'
         curr_date = datetime.strptime(filename, format)
-        tz = pytz.timezone('Europe/Moscow')
-        curr_date = curr_date.replace(tzinfo=pytz.utc).astimezone(tz)
 
-        dates.append(curr_date)
-        results.append(reader(curr_data))
+        if date_condition(curr_date):
+            curr_filename = os.path.join(dirpath, filename)
+            curr_data = read_fits(curr_filename)
+            curr_result = expression(curr_data)
 
+            if res_condition(curr_result):
+                tz = pytz.timezone('Europe/Moscow')
+                curr_date = curr_date.replace(tzinfo=pytz.utc).astimezone(tz)
+
+                dates.append(curr_date)
+                results.append(curr_result)
+                
     return (dates, results)
 
 def read_temps(data: np.ndarray) -> int: 
     return data[
         int(data.shape[0] / 2), 
         int(data.shape[1] / 2) 
-    ]
+    ] / 10
 
-dirpath = 'maps/2021/'
+def is_night(dt: datetime) -> bool:
+    return dt.hour > 0 and dt.hour < 5
 
-(dates1, temps1) = read_all_files(dirpath, read_temps)
-(dates2, temps2) = get_field_from_pickle('temperature/all_data.pkl', 'TEMP_SKY')
-min_temps = []
+def run():
+    dirpath = 'maps/irmaps/'
 
-for i in range(len(dates1)):
-    if i % 50 == 0:
-        print('{}'.format(i))
+    (dates1, temps1) = read_all_files(dirpath, read_temps, is_night)
+    (dates2, temps2) = get_field_from_pickle('temperature/all_data.pkl', 'TEMP')
+    min_temps = []
 
-    dates_diff = np.abs(dates2 - dates1[i])
-    min_temps.append(temps2[np.argmin(dates_diff)])
-    pass
+    for i in range(len(dates1)):
+        if i % 50 == 0:
+            print('{}'.format(i))
 
-plt.plot(temps1, min_temps, 'ro', markersize = 0.5)
-plt.show()
+        dates_diff = np.abs(dates2 - dates1[i])
+        min_temps.append(temps2[np.argmin(dates_diff)])
+        pass
+
+    plt.xlim(-40, 15)
+    plt.ylim(-30, 15)
+    plt.plot(temps1, min_temps, 'ro', markersize = 0.5)
+    plt.show()
