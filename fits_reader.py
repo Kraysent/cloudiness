@@ -2,7 +2,8 @@ import os
 from typing import Callable
 import numpy as np
 import matplotlib.pyplot as plt
-from datetime import datetime
+from datetime import datetime, timezone
+import pytz
 from astropy.io import fits
 from read_pickle import get_field_from_pickle
 
@@ -53,6 +54,8 @@ def read_all_files(dirpath: str, reader: Callable = lambda x: x):
 
         format = 'MAP%Y-%m-%dT%H-%M-%S.%f.fits'
         curr_date = datetime.strptime(filename, format)
+        tz = pytz.timezone('Europe/Moscow')
+        curr_date = curr_date.replace(tzinfo=pytz.utc).astimezone(tz)
 
         dates.append(curr_date)
         results.append(reader(curr_data))
@@ -69,9 +72,15 @@ dirpath = 'maps/2021/'
 
 (dates1, temps1) = read_all_files(dirpath, read_temps)
 (dates2, temps2) = get_field_from_pickle('temperature/all_data.pkl', 'TEMP_SKY')
+min_temps = []
 
-fig, (ax1, ax2) = plt.subplots(nrows = 2)
-ax1.plot(dates1, temps1, 'bo', markersize = 0.1)
-ax2.plot(dates2, temps2, 'bo', markersize = 0.1)
-ax2.set_xlim(ax1.get_xlim())
+for i in range(len(dates1)):
+    if i % 50 == 0:
+        print('{}'.format(i))
+
+    dates_diff = np.abs(dates2 - dates1[i])
+    min_temps.append(temps2[np.argmin(dates_diff)])
+    pass
+
+plt.plot(temps1, min_temps, 'ro', markersize = 0.5)
 plt.show()
