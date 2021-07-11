@@ -1,18 +1,23 @@
+from typing import Tuple
 import numpy as np
 from astropy.io import fits
-from datetime import date, datetime
+from datetime import datetime
 import os
-import pytz
 
-def compress():
-    pass
-
-def read_fits(filename: str) -> np.ndarray:
+def read_fits(filename: str, headers: list = []) -> Tuple[np.ndarray, list]:
     data = np.zeros((64, 64))
     with fits.open(filename) as hdul:
         data = hdul[0].data.copy()
 
-    return data
+    output_headers = {}
+
+    for h in headers:
+        output_headers[h] = hdul[0].header[h]
+
+    return (data, output_headers)
+
+def get_fits_date_format():
+    return '%d-%m-%Y-%H-%M-%S.%f'
 
 def get_list_of_files(dirpath: str) -> list:
     result = []
@@ -49,24 +54,25 @@ def read_all_files(dirpath: str, span_start: int, span_end: int):
 
     return (dates[perm], arrays[perm])
 
-dirpath = 'maps/irmaps/'
-number_of_files = len(get_list_of_files(dirpath))
-N = 10
-step = int(number_of_files / N)
+def run():
+    dirpath = 'maps/irmaps/'
+    number_of_files = len(get_list_of_files(dirpath))
+    N = 10
+    step = int(number_of_files / N)
 
-for i in range(N):
-    print(i)
-    (dates, data) = read_all_files(dirpath, i * step, (i + 1) * step)
+    for i in range(N):
+        print(i)
+        (dates, data) = read_all_files(dirpath, i * step, (i + 1) * step)
 
-    result = fits.PrimaryHDU(data)
-    result.header['DATES'] = 'example'
-    format = '%d-%m-%Y-%H-%M-%S.%f'
-    first = True
-    for d in dates:
-        if not first:
-            result.header['DATES'] += ','
+        result = fits.PrimaryHDU(data)
+        result.header['DATES'] = ''
+        format = get_fits_date_format
+        first = True
+        for d in dates:
+            if not first:
+                result.header['DATES'] += ','
 
-        result.header['DATES'] += d.strftime(format)
-        first = False
+            result.header['DATES'] += d.strftime(format)
+            first = False
 
-    result.writeto('result{}.fits'.format(i), overwrite=True)
+        result.writeto('result{}.fits'.format(i), overwrite=True)

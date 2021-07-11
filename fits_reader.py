@@ -1,14 +1,13 @@
+from divisor import divide_cube
 import os
+from datetime import datetime
 from typing import Callable
-import numpy as np
 import matplotlib.pyplot as plt
-from datetime import datetime, timezone
+import numpy as np
 import pytz
-from astropy.io import fits
-from read_pickle import get_field_from_pickle
 
-def read_fits(filename: str) -> np.ndarray:
-    return fits.getdata(filename)
+from fits_compressor import get_fits_date_format, read_fits
+from read_pickle import get_field_from_pickle
 
 def plot_picture(filename: str):
     data = read_fits(filename)
@@ -22,16 +21,39 @@ def plot_difference(filename1: str, filename2: str):
     plt.imshow(diff)
     plt.show()
 
-dates = []
-center_temps = []
-
 def get_list_of_files(dirpath: str) -> list:
     result = []
     for (_, _, filenames) in os.walk(dirpath):
         result = filenames
         break
 
-    return result
+    return sorted(result)
+
+def get_dates_from_fits(dates) -> np.ndarray:
+    dates = dates[7:]
+    dates = dates.split(',')
+    dates = [datetime.strptime(date, get_fits_date_format()) for date in dates]
+    dates = np.array(dates)
+
+    return dates
+
+def read_list_of_fits_in_dir(dirpath: str):
+    filenames = get_list_of_files(dirpath)[:3]
+    results = []
+    dates = []
+
+    for filename in filenames:
+        print('reading: {}'.format(filename))
+        curr_filename = os.path.join(dirpath, filename)
+        (curr_data, headers) = read_fits(curr_filename, ['DATES'])
+        
+        results.append(curr_data)
+        dates.append(get_dates_from_fits(headers['DATES']))
+
+    results = np.concatenate(results, axis = 0)
+    dates = np.concatenate(dates)
+
+    return dates, results
 
 def read_all_files(
     dirpath: str, 
@@ -95,3 +117,21 @@ def run():
     plt.ylim(-30, 15)
     plt.plot(temps1, min_temps, 'ro', markersize = 0.5)
     plt.show()
+
+def run1():
+    dirpath = 'maps/'
+    (dates, data) = read_list_of_fits_in_dir(dirpath)
+    splitted_data = divide_cube(data, 8, 8)
+
+    _, axs = plt.subplots(8, 8)
+    num = 1000
+
+    plt.suptitle(dates[num].strftime(get_fits_date_format()))
+
+    for i in range(axs.shape[0]):
+        for j in range(axs.shape[1]):
+            axs[i, j].imshow(splitted_data[num][i, j])
+
+    plt.show()
+
+run1()

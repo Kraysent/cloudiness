@@ -22,6 +22,7 @@ def divide_cube(
 
     return res_arr
 
-init_array = np.zeros((20, 64, 64))
-res = divide_cube(init_array, 8, 8)
-print(res.shape)
+def divide_cube_test():
+    init_array = np.zeros((20, 64, 64))
+    res = divide_cube(init_array, 8, 8)
+    assert res == np.zeros((20, 8, 8, 8, 8))
