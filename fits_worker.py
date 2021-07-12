@@ -34,7 +34,7 @@ class FITSWorker:
     fits_filename_format = 'MAP%Y-%m-%dT%H-%M-%S.%f.fits'
 
     def get_dates_from_fits(dates: str) -> np.ndarray:
-        dates = dates[7:]
+        dates = dates[7:] # accidental 'example' in the beginning
         dates = dates.split(',')
         tz = pytz.timezone('Europe/Moscow')
         dates = [
@@ -65,7 +65,7 @@ class FITSWorker:
             dates.append(FITSWorker.get_dates_from_fits(headers['DATES']))
 
         results = np.concatenate(results, axis = 0)
-        dates = np.concatenate(dates)
+        dates = np.concatenate(dates).astype(np.datetime64)
 
         return dates, results
 

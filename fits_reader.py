@@ -1,11 +1,16 @@
-from divisor import divide_cube
+from datetime import timedelta
+import sys
 from typing import Tuple
+
 import matplotlib.pyplot as plt
 import numpy as np
 from pandas import DataFrame
 
+from divisor import divide_cube
 from fits_worker import FITSWorker, get_list_of_files
 from read_pickle import get_field_from_pickle
+
+np.set_printoptions(threshold=sys.maxsize, floatmode = 'unique')
 
 def dump_data(data: dict, output_filename: str):
     res_df = DataFrame.from_dict(data)
@@ -37,43 +42,66 @@ def run1():
 
     plt.show()
 
+def filter_temps(dates: np.ndarray, temps: np.ndarray):
+    mask = temps != np.NaN
+    print(temps.shape, mask.shape)
+    return (dates[mask], temps[mask])
+
 def run2():
     filenames = get_list_of_files('maps/', print_full_paths = True)[:4]
-    (dates1, data) = FITSWorker.concat_list_of_fits(filenames)
+    (dates_sky, data) = FITSWorker.concat_list_of_fits(filenames)
     # (data, _) = FITSWorker.read_fits('maps/misc/resultold.fits')
-    # dates1 = FITSWorker.get_list_of_dates('maps/2021/')
+    # dates_sky = FITSWorker.get_list_of_dates('maps/2021/')
 
     ncols = 8
     nrows = 8
-    temps1 = process_data(data, ncols, nrows)
+    temps_sky = process_data(data, ncols, nrows)
 
-    (dates2, temps2) = get_field_from_pickle('temperature/all_data.pkl', 'TEMP')
-    min_temps = np.zeros((len(dates1)))
+    (dates_temp, temps) = get_field_from_pickle('temperature/all_data.pkl', 'TEMP')
+    dates_temp = dates_temp.to_pydatetime().astype(np.datetime64)
+    min_temps = np.zeros((len(dates_sky)))
 
-    for i in range(len(dates1)):
+    # N = 20
+    # step = int(len(dates_sky) / N)
+    # mask = np.zeros((len(dates_sky)), dtype = bool)
+
+    # for i in range(N):
+    #     print(i)
+    #     diff_matrix = dates_sky[i * step : (i + 1) * step] - dates_temp[:, np.newaxis]
+    #     mask[i * step : (i + 1) * step] = np.argmin(diff_matrix, axis = 1)
+
+    # min_temps = temps[mask]
+
+    for i in range(len(dates_sky)):
         if i % 1000 == 0: print(i)
-        dates_diff = np.abs(dates1[i] - dates2)
-        min_temps[i] = temps2[np.argmin(dates_diff)]
+        dates_diff = np.abs(dates_sky[i] - dates_temp)
+        min_diff = np.argmin(dates_diff)
+
+        if dates_diff[min_diff] < timedelta(minutes = 10):
+            min_temps[i] = temps[min_diff]
+        else:
+            min_temps[i] = np.NaN
 
     dump = {}
-    dump['DATE'] = dates1
+    dump['DATE'] = dates_sky
     dump['TEMP'] = min_temps
 
     for i in range(ncols):
         for j in range(nrows):
-            dump['TEMP_SKY_{}_{}'.format(i, j)] = temps1[:, i, j]
+            dump['TEMP_SKY_{}_{}'.format(i, j)] = temps_sky[:, i, j]
         
-    dump_data(dump, 'pickles/result.pkl')
+    dump_data(dump, 'pickles/result1.pkl')
 
 def run3():
-    filename = 'pickles/result.pkl'
+    filename = 'pickles/result1.pkl'
     (_, dates) = get_field_from_pickle(filename, 'DATE')
     (_, temps) = get_field_from_pickle(filename, 'TEMP')
-    (_, temps_sky_33) = get_field_from_pickle(filename, 'TEMP_SKY_0_0')
+    (_, temps_sky) = get_field_from_pickle(filename, 'TEMP_SKY_3_3')
 
-    plt.plot(temps_sky_33, temps, 'ro', markersize = 0.3)
+    plt.plot(temps_sky, temps, 'ro', markersize = 0.3)
     plt.xlim(-45, 10)
     plt.ylim(-25, 15)
     plt.show()
 
+run2()
 run3()

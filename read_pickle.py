@@ -1,12 +1,11 @@
+from datetime import datetime
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
 def get_field_from_pickle(filename: str, field: str) -> tuple:
     data  = pd.read_pickle(filename)
-    return (data.index, data[field])
+    dates = data.index
+    res = data[field].to_numpy()
 
-# (dates, temperature) = get_field_from_pickle('temperature/all_data.pkl', 'TEMP')
-# plt.ylim(-25, 25)
-# plt.plot(dates, temperature, 'o', markersize = 0.1)
-# plt.show()
+    return (dates, res)
