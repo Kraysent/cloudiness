@@ -5,6 +5,7 @@ from typing import Tuple
 import matplotlib.pyplot as plt
 import numpy as np
 from pandas import DataFrame
+import matplotlib
 
 from divisor import divide_cube
 from fits_worker import FITSWorker, get_list_of_files
@@ -24,7 +25,7 @@ def compress_fits():
 
 def process_data(data: np.ndarray, ncols: int, nrows: int) -> Tuple[np.ndarray, np.ndarray]:
     splitted_data = divide_cube(data, ncols, nrows)
-    return splitted_data.mean(axis = (3, 4)) / 10
+    return (splitted_data.mean(axis = (3, 4)) / 10, splitted_data.std(axis = (3, 4)) / 10)
 
 def run1():
     filenames = get_list_of_files('maps/', print_full_paths = True)[:3]
@@ -47,6 +48,9 @@ def filter_temps(dates: np.ndarray, temps: np.ndarray):
     print(temps.shape, mask.shape)
     return (dates[mask], temps[mask])
 
+def crossmatch_dates():
+    pass
+
 def run2():
     filenames = get_list_of_files('maps/', print_full_paths = True)[:7]
     (dates_sky, data) = FITSWorker.concat_list_of_fits(filenames)
@@ -55,7 +59,7 @@ def run2():
 
     ncols = 8
     nrows = 8
-    temps_sky = process_data(data, ncols, nrows)
+    (temps_sky, temps_sky_disp) = process_data(data, ncols, nrows)
 
     (dates_temp, temps) = get_field_from_pickle('temperature/all_data.pkl', 'TEMP')
     dates_temp = dates_temp.to_pydatetime().astype(np.datetime64)
@@ -91,23 +95,48 @@ def run2():
     for i in range(ncols):
         for j in range(nrows):
             dump['TEMP_SKY_{}_{}'.format(i, j)] = temps_sky[:, i, j][filter]
+            dump['STD_{}_{}'.format(i, j)] = temps_sky_disp[:, i, j][filter]
         
-    dump_data(dump, 'pickles/result2.pkl')
+    dump_data(dump, 'pickles/res.pkl')
 
 def run3():
-    filename = 'pickles/105000.pkl'
+    filename = 'pickles/res.pkl'
     (_, dates) = get_field_from_pickle(filename, 'DATE')
     (_, temps) = get_field_from_pickle(filename, 'TEMP')
 
-    _, axes = plt.subplots(8, 8)
+    def plot1plot():
+        (_, temps_sky) = get_field_from_pickle(filename, 'TEMP_SKY_4_4')
+        (_, temps_sky_disp) = get_field_from_pickle(filename, 'STD_1_2')
+        plt.scatter(
+            temps_sky, temps, 
+            s = 0.1, c = temps_sky_disp, 
+            cmap = 'plasma', norm = matplotlib.colors.LogNorm()
+        )
 
-    for i in range(0, 8):
-        for j in range(0, 8):
-            (_, temps_sky) = get_field_from_pickle(filename, 'TEMP_SKY_{}_{}'.format(i, j))
-            axes[i, j].plot(temps_sky, temps, 'bo', markersize = 0.002)
+        plt.xlim(-45, 10)
+        plt.ylim(-25, 15)
 
-    plt.xlim(-45, 10)
-    plt.ylim(-25, 15)
+    def plotall():
+        # computer might fall
+        _, axes = plt.subplots(8, 8)
+
+        for i in range(0, 8):
+            for j in range(0, 8):
+                (_, temps_sky) = get_field_from_pickle(filename, 'TEMP_SKY_{}_{}'.format(i, j))
+                axes[i, j].plot(temps_sky, temps, 'bo', markersize = 0.002)
+                (_, temps_sky_disp) = get_field_from_pickle(filename, 'STD_1_2')
+                axes[i, j].scatter(
+                    temps_sky, temps, 
+                    s = 0.1, c = temps_sky_disp, 
+                    cmap = 'plasma', norm = matplotlib.colors.LogNorm()
+                )
+
+        plt.xlim(-45, 10)
+        plt.ylim(-25, 15)
+
+    plot1plot()
+
+    plt.colorbar()
     plt.show()
 
 # run2()
