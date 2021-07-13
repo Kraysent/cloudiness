@@ -48,7 +48,7 @@ def filter_temps(dates: np.ndarray, temps: np.ndarray):
     return (dates[mask], temps[mask])
 
 def run2():
-    filenames = get_list_of_files('maps/', print_full_paths = True)[:4]
+    filenames = get_list_of_files('maps/', print_full_paths = True)[:7]
     (dates_sky, data) = FITSWorker.concat_list_of_fits(filenames)
     # (data, _) = FITSWorker.read_fits('maps/misc/resultold.fits')
     # dates_sky = FITSWorker.get_list_of_dates('maps/2021/')
@@ -80,28 +80,35 @@ def run2():
         if dates_diff[min_diff] < timedelta(minutes = 10):
             min_temps[i] = temps[min_diff]
         else:
-            min_temps[i] = np.NaN
+            min_temps[i] = np.nan
+
+    filter = np.logical_not(np.isnan(min_temps))
 
     dump = {}
-    dump['DATE'] = dates_sky
-    dump['TEMP'] = min_temps
+    dump['DATE'] = dates_sky[filter]
+    dump['TEMP'] = min_temps[filter]
 
     for i in range(ncols):
         for j in range(nrows):
-            dump['TEMP_SKY_{}_{}'.format(i, j)] = temps_sky[:, i, j]
+            dump['TEMP_SKY_{}_{}'.format(i, j)] = temps_sky[:, i, j][filter]
         
-    dump_data(dump, 'pickles/result1.pkl')
+    dump_data(dump, 'pickles/result2.pkl')
 
 def run3():
-    filename = 'pickles/result1.pkl'
+    filename = 'pickles/105000.pkl'
     (_, dates) = get_field_from_pickle(filename, 'DATE')
     (_, temps) = get_field_from_pickle(filename, 'TEMP')
-    (_, temps_sky) = get_field_from_pickle(filename, 'TEMP_SKY_3_3')
 
-    plt.plot(temps_sky, temps, 'ro', markersize = 0.3)
+    _, axes = plt.subplots(8, 8)
+
+    for i in range(0, 8):
+        for j in range(0, 8):
+            (_, temps_sky) = get_field_from_pickle(filename, 'TEMP_SKY_{}_{}'.format(i, j))
+            axes[i, j].plot(temps_sky, temps, 'bo', markersize = 0.002)
+
     plt.xlim(-45, 10)
     plt.ylim(-25, 15)
     plt.show()
 
-run2()
+# run2()
 run3()
