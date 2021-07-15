@@ -1,7 +1,6 @@
+# from utils.visualizer import Visualizer
 import numpy as np
 import pandas as pd
-import matplotlib
-import matplotlib.pyplot as plt
 
 def divide(photo, shape):
     fragment_shape = (
@@ -26,23 +25,8 @@ def get_field_from_pickle(filename: str, field: str) -> tuple:
 
     return (dates, res)
 
-def draw_calibration_data(filename: str, clogscale: bool = True):
-    (_, dates) = get_field_from_pickle(filename, 'DATE')
-    (_, temps) = get_field_from_pickle(filename, 'TEMP')
-    (_, temps_sky) = get_field_from_pickle(filename, 'TEMP_SKY_4_4')
-    (_, temps_sky_disp) = get_field_from_pickle(filename, 'STD_1_2')
-
-    norm = None
-    
-    if clogscale:
-        norm = matplotlib.colors.LogNorm()
-
-    plt.scatter(
-        temps_sky, temps, 
-        s = 0.1, c = temps_sky_disp, 
-        cmap = 'plasma', norm = norm
-    )
-
-    plt.xlim(-45, 10)
-    plt.ylim(-25, 15)
-    plt.colorbar()
+# def draw_calibration_data(filename: str, clogscale: bool = True):
+#     visualizer = Visualizer((4, 4))
+#     visualizer.scatter_calibration(filename)
+#     visualizer.set_lims((-45, 10), (-25, 20))
+#     visualizer.show()
