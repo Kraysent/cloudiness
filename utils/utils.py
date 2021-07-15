@@ -46,4 +46,3 @@ def draw_calibration_data(filename: str, clogscale: bool = True):
     plt.xlim(-45, 10)
     plt.ylim(-25, 15)
     plt.colorbar()
-    plt.show()

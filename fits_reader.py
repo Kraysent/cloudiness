@@ -118,6 +118,7 @@ def run3():
         plt.show()
 
     utils.draw_calibration_data(filename)
+    plt.show()
 
 # run2()
 run3()
