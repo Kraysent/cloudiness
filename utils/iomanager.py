@@ -1,8 +1,6 @@
 from abc import ABC, abstractmethod
 
-import numpy as np
-
-from utils.calibration import Calibration, CalibrationIOManager
+from utils.calibration import CalibrationIOManager
 from utils.fitsiomanager import FITSIOManager
 
 

@@ -9,7 +9,7 @@ import matplotlib
 
 from divisor import divide_cube
 from fits_worker import FITSWorker, get_list_of_files
-from read_pickle import get_field_from_pickle
+import utils.utils as utils
 
 np.set_printoptions(threshold=sys.maxsize, floatmode = 'unique')
 
@@ -61,7 +61,7 @@ def run2():
     nrows = 8
     (temps_sky, temps_sky_disp) = process_data(data, ncols, nrows)
 
-    (dates_temp, temps) = get_field_from_pickle('temperature/all_data.pkl', 'TEMP')
+    (dates_temp, temps) = utils.get_field_from_pickle('temperature/all_data.pkl', 'TEMP')
     dates_temp = dates_temp.to_pydatetime().astype(np.datetime64)
     min_temps = np.zeros((len(dates_sky)))
 
@@ -101,43 +101,23 @@ def run2():
 
 def run3():
     filename = 'pickles/res.pkl'
-    (_, dates) = get_field_from_pickle(filename, 'DATE')
-    (_, temps) = get_field_from_pickle(filename, 'TEMP')
-
-    def plot1plot():
-        (_, temps_sky) = get_field_from_pickle(filename, 'TEMP_SKY_4_4')
-        (_, temps_sky_disp) = get_field_from_pickle(filename, 'STD_1_2')
-        plt.scatter(
-            temps_sky, temps, 
-            s = 0.1, c = temps_sky_disp, 
-            cmap = 'plasma'#, norm = matplotlib.colors.LogNorm()
-        )
-
-        plt.xlim(-45, 10)
-        plt.ylim(-25, 15)
 
     def plotall():
-        # computer might fall
+        (_, dates) = utils.get_field_from_pickle(filename, 'DATE')
+        (_, temps) = utils.get_field_from_pickle(filename, 'TEMP')
+        
         _, axes = plt.subplots(8, 8)
 
         for i in range(0, 8):
             for j in range(0, 8):
-                (_, temps_sky) = get_field_from_pickle(filename, 'TEMP_SKY_{}_{}'.format(i, j))
+                (_, temps_sky) = utils.get_field_from_pickle(filename, 'TEMP_SKY_{}_{}'.format(i, j))
                 axes[i, j].plot(temps_sky, temps, 'bo', markersize = 0.002)
-                (_, temps_sky_disp) = get_field_from_pickle(filename, 'STD_1_2')
-                axes[i, j].scatter(
-                    temps_sky, temps, 
-                    s = 0.1, c = temps_sky_disp, 
-                    cmap = 'plasma'# norm = matplotlib.colors.LogNorm()
-                )
 
         plt.xlim(-45, 10)
         plt.ylim(-25, 15)
+        plt.show()
 
-    plot1plot()
-
-    plt.colorbar()
-    plt.show()
+    utils.draw_calibration_data(filename)
 
 # run2()
 run3()
