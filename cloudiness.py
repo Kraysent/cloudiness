@@ -1,5 +1,5 @@
 import numpy as np
-from utils.iomanager import IOManager, StandartIOManager
+from utils.iomanager import IOManager, BlankIOManager
 from utils import utils
 
 def run(manager: IOManager):
@@ -8,16 +8,15 @@ def run(manager: IOManager):
     calibration = manager.get_current_calibration()
 
     photo = utils.divide(photo, calibration.shape)
-    temp_sky = np.mean(photo, axis = (3, 4))
+    temp_sky = np.mean(photo, axis = (2, 3))
 
-    cloudiness = calibration.get_cloudiness(temp_sky, temp)
-    fogginess = calibration.get_fogginess(temp_sky, temp)
+    cloudiness, fogginess = calibration.get_cloudiness_and_fogginess(temp_sky, temp)
 
     weights = calibration.get_frame_weights()
-    total_cloudiness = np.mean(cloudiness * weights)
-    total_fogginess = np.mean(fogginess * weights)
+    total_cloudiness = np.average(cloudiness, weights = weights)
+    total_fogginess  = np.average(fogginess, weights = weights)
 
     print('Cloudiness: {}'.format(total_cloudiness))
     print('Fogginess: {}'.format(total_fogginess))
 
-run(StandartIOManager())
+run(BlankIOManager())

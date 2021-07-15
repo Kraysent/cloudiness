@@ -1,6 +1,10 @@
-from abc import abstractmethod, ABC
-from fitsiomanager import FITSIOManager
+from abc import ABC, abstractmethod
+
 import numpy as np
+
+from utils.calibration import Calibration, CalibrationIOManager
+from utils.fitsiomanager import FITSIOManager
+
 
 class IOManager(ABC):
     @abstractmethod
@@ -15,13 +19,20 @@ class IOManager(ABC):
     def get_current_calibration(self):
         pass
 
-class StandartIOManager(IOManager):
+class BlankIOManager(IOManager):
+    def __init__(self):
+        pass
+    
     def get_current_photo(self):
-        manager = FITSIOManager()
-        return manager.get_data('input/current.fits')
+        return FITSIOManager.get_data('input/current.fits') / 10
 
     def get_current_calibration(self):
-        return super().get_current_calibration()
+        return CalibrationIOManager.read_calibration_from_csv(
+            ['calibration/k_clear.csv', 'calibration/b_clear.csv',
+            'calibration/k_cloud.csv', 'calibration/b_cloud.csv',
+            'calibration/k_fog.csv', 'calibration/b_fog.csv',
+            'calibration/weights.csv']
+        )
 
     def get_current_temperature(self):
-        return 0
+        return -20
