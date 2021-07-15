@@ -110,7 +110,7 @@ def run3():
         plt.scatter(
             temps_sky, temps, 
             s = 0.1, c = temps_sky_disp, 
-            cmap = 'plasma', norm = matplotlib.colors.LogNorm()
+            cmap = 'plasma'#, norm = matplotlib.colors.LogNorm()
         )
 
         plt.xlim(-45, 10)
@@ -128,7 +128,7 @@ def run3():
                 axes[i, j].scatter(
                     temps_sky, temps, 
                     s = 0.1, c = temps_sky_disp, 
-                    cmap = 'plasma', norm = matplotlib.colors.LogNorm()
+                    cmap = 'plasma'# norm = matplotlib.colors.LogNorm()
                 )
 
         plt.xlim(-45, 10)
