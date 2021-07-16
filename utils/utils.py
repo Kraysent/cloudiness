@@ -1,6 +1,6 @@
 import numpy as np
 
-def divide(photo, shape):
+def divide_plane(photo, shape):
     fragment_shape = (
         int(photo.shape[0] / shape[0]), 
         int(photo.shape[1] / shape[1])
@@ -16,4 +16,5 @@ def divide(photo, shape):
 
     return result
 
-    
+def divide_cube(cube, shape):
+    pass

@@ -1,4 +1,4 @@
-from typing import Callable, Tuple
+from typing import Any, Callable, Tuple
 
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -8,6 +8,35 @@ from matplotlib.axes import Axes
 
 from utils.calibration import ThresholdLine
 
+
+class LineBuilder:
+    def __init__(self, line):
+        self.first = True
+        self.xs, self.ys = list(line.get_xdata()), list(line.get_ydata())
+        self.line = line
+        self.cid = self.line.figure.canvas.mpl_connect('button_press_event', self)
+
+    def __call__(self, event):
+        print('Click: ({}, {})'.format(event.xdata, event.ydata))
+        self.xs.append(event.xdata)
+        self.ys.append(event.ydata)
+
+        if self.first:
+            self.xs = [event.xdata]
+            self.ys = [event.ydata]
+            self.first = False
+        else:
+            self.xs.append(event.xdata)
+            self.ys.append(event.ydata)
+            x1, y1 = self.xs[0], self.ys[0]
+            x2, y2 = self.xs[1], self.ys[1]
+            k = (y2 - y1) / (x2 - x1)
+            b = (x2 * y1 - x1 * y2) / (x2 - x1)
+            print('k = {}\tb = {}'.format(np.round(k, 2), np.round(b, 2)))
+            self.first = True
+
+        self.line.set_data(self.xs, self.ys)
+        self.line.figure.canvas.draw()
 
 class Visualizer:
     def __init__(self, draw_fragment: Tuple[int, int] = None):
@@ -20,7 +49,18 @@ class Visualizer:
         self.axes = axes
         self.fragment = draw_fragment
 
-    def scatter_calibration(self, filename: str, clogscale: bool = True, markersize: float = 0.1, coloring: bool = True):
+    def do_for_each_axes(self, action: Callable[[Axes, int, int], Any]):
+        results = []
+
+        if self.fragment != None:
+            results.append(action(self.axes, self.fragment[0], self.fragment[1]))
+        else:
+            for ix, iy in np.ndindex(self.axes.shape):
+                results.append(action(self.axes[ix, iy], ix, iy))
+
+        return results
+
+    def scatter_calibration(self, filename: str, coloring: bool = True, clogscale: bool = True, markersize: float = 0.1):
         (_, temps) = PickleIO.get_field_from_pickle(filename, 'TEMP')
 
         if coloring:
@@ -47,13 +87,6 @@ class Visualizer:
 
         self.do_for_each_axes(action)
 
-    def do_for_each_axes(self, action: Callable[[Axes, int, int], None]):
-        if self.fragment != None:
-            action(self.axes, self.fragment[0], self.fragment[1])
-        else:
-            for ix, iy in np.ndindex(self.axes.shape):
-                action(self.axes[ix, iy], ix, iy)
-
     def plot_point(self, x, y):
         action = lambda axes, ix, iy: axes.plot(x[ix, iy], y, 'ro')
 
@@ -64,6 +97,11 @@ class Visualizer:
 
         action = lambda axes, ix, iy: axes.plot(x, line.k[ix, iy] * x + line.b[ix, iy])
         self.do_for_each_axes(action)
+
+    def add_linebuilder(self):
+        lines = self.do_for_each_axes(lambda axes, x, y: axes.plot([0], [0], 'g-'))
+        for line in lines:
+            LineBuilder(line[0])
 
     def set_lims(self, xlim: Tuple[int, int], ylim: Tuple[int, int]):
         def action(axes, ix, iy):

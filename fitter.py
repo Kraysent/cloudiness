@@ -1,10 +1,10 @@
+from iotools.pickleio import PickleIO
 import matplotlib.pyplot as plt
-from read_pickle import get_field_from_pickle
 import numpy as np
 
 filename = 'pickles/105000.pkl'
-dates = get_field_from_pickle(filename, 'DATE')[1]
-temps = get_field_from_pickle(filename, 'TEMP')[1]
+dates = PickleIO.get_field_from_pickle(filename, 'DATE')[1]
+temps = PickleIO.get_field_from_pickle(filename, 'TEMP')[1]
 
 class LineBuilder:
     def __init__(self, line):
@@ -38,7 +38,7 @@ class LineBuilder:
 def manual_fit():
     for i in range(3, 8):
         for j in range(8):
-            temps_sky = get_field_from_pickle(filename, 'TEMP_SKY_{}_{}'.format(i, j))[1]
+            temps_sky = PickleIO.get_field_from_pickle(filename, 'TEMP_SKY_{}_{}'.format(i, j))[1]
             fig, ax = plt.subplots()
             plt.suptitle('TEMP_SKY_{}_{}'.format(i, j))
             plt.xlabel('TEMP_SKY_{}_{}'.format(i, j))
@@ -60,7 +60,7 @@ def automatic_fit():
         else:
             return np.argsort(array)[:num_of_points] 
 
-    temps_sky = get_field_from_pickle(filename, 'TEMP_SKY_6_6')[1]
+    temps_sky = PickleIO.get_field_from_pickle(filename, 'TEMP_SKY_6_6')[1]
     plt.plot(temps_sky, temps, 'bo', markersize = 0.05)
 
     def plot_left():

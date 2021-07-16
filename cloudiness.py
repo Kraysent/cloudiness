@@ -1,3 +1,5 @@
+from datetime import timedelta
+from iotools.pickleio import PickleIO
 import numpy as np
 
 from utils import utils
@@ -18,7 +20,7 @@ def run(
     temp = temp_manager.get_current_temperature()
     calibration = calib_manager.get_current_calibration()
 
-    photo = utils.divide(photo, calibration.shape)
+    photo = utils.divide_plane(photo, calibration.shape)
     temp_sky = np.mean(photo, axis = (2, 3))
 
     cloudiness, fogginess = calibration.get_cloudiness_and_fogginess(temp_sky, temp)
@@ -40,6 +42,51 @@ def run(
     print('Cloudiness: {}'.format(total_cloudiness))
     print('Fogginess: {}'.format(total_fogginess))
     visualizer.show()
+
+def calibrate(manager, dump_filename: str):
+    photo_data, photo_dates = manager.get_sample_data()
+    temps, temp_dates = manager.get_temperature_data()
+
+    matched_temps = np.zeros(len(photo_dates))
+
+    for i in range(len(photo_dates)):
+        if i % 1000 == 0: print(i)
+        index = manager.find_nearest_date(photo_dates[i], temp_dates)
+        diff = photo_dates[i] - temp_dates[index]
+
+        if diff < timedelta(minutes = 10):
+            matched_temps[i] = temps[index]
+        else:
+            matched_temps[i] = np.nan
+
+    filter = np.logical_not(np.isnan(matched_temps))
+    photo_dates = photo_dates[filter]
+    matched_temps = matched_temps[filter]
+
+    division_shape = (8, 8)
+    photo_data = utils.divide_cube(photo_data, division_shape)
+    (mean_intensity, std_intensity) = manager.get_statistical_parameters(photo_data)
+
+    for ix, iy in np.ndindex(division_shape):
+        mean_intensity[:, ix, iy] = mean_intensity[:, ix, iy][filter]
+        std_intensity[:, ix, iy] = std_intensity[:, ix, iy][filter]
+
+    dump = {}
+    dump['DATE'] = photo_dates
+    dump['TEMP'] = matched_temps
+
+    for ix, iy in np.ndindex(division_shape):
+        dump['TEMP_SKY_{}_{}'.format(ix, iy)] = mean_intensity[:, ix, iy][filter]
+        dump['STD_{}_{}'.format(ix, iy)] = std_intensity[:, ix, iy][filter]
+
+    PickleIO.dump_dict(dump_filename, dump)
+
+    visualizer = Visualizer((4, 4))
+    visualizer.scatter_calibration(dump_filename, coloring = False)
+    visualizer.add_linebuilder()
+    visualizer.show()
+    
+# calibrate(None, 'pickles/105000.pkl')
 
 run(
     FITSPhotoManager(),
