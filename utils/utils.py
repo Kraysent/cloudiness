@@ -1,5 +1,4 @@
 import numpy as np
-import pandas as pd
 
 def divide(photo, shape):
     fragment_shape = (
@@ -17,10 +16,4 @@ def divide(photo, shape):
 
     return result
 
-def get_field_from_pickle(filename: str, field: str) -> tuple:
-    data  = pd.read_pickle(filename)
-    dates = data.index
-    res = data[field].to_numpy()
-
-    return (dates, res)
     
