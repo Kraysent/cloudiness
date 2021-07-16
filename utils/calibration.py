@@ -57,13 +57,8 @@ class Calibration:
 
     def get_frame_weights(self):
         return self.weights
-        
-    @property
-    def shape(self):
-        return self.clear_line.shape
 
-class CalibrationIOManager():
-    def read_calibration_from_csv(filenames: list) -> Calibration:
+    def read_from_csv(filenames: list) -> 'Calibration':
         if len(filenames) < 7:
             raise RuntimeError('Not enough filenames provided')
             
@@ -73,3 +68,8 @@ class CalibrationIOManager():
         weights = np.genfromtxt(filenames[6], delimiter = ',')
 
         return Calibration.init_with_params(clear_line, cloud_line, fog_line, weights)
+        
+    @property
+    def shape(self):
+        return self.clear_line.shape
+

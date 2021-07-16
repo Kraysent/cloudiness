@@ -1,7 +1,8 @@
 import numpy as np
 from astropy.io import fits
 
-class FITSIOManager():
+
+class FITSIO:
     def get_data(filename: str, headers: list = []):
         data = np.zeros((64, 64))
 

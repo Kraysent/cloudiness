@@ -1,14 +1,22 @@
 import numpy as np
 
 from utils import utils
-from utils.iomanager import BlankIOManager, IOManager
+from utils.calibration_manager import (CalibrationManager,
+                                       StandartCalibrationManager)
+from utils.photo_manager import FITSPhotoManager, PhotoManager
+from utils.temperature_manager import (BlankTemperatureManager,
+                                       TemperatureManager)
 from utils.visualizer import Visualizer
 
 
-def run(manager: IOManager):
-    photo = manager.get_current_photo()
-    temp = manager.get_current_temperature()
-    calibration = manager.get_current_calibration()
+def run(
+    photo_manager: PhotoManager, 
+    temp_manager: TemperatureManager, 
+    calib_manager: CalibrationManager
+):
+    photo = photo_manager.get_current_photo()
+    temp = temp_manager.get_current_temperature()
+    calibration = calib_manager.get_current_calibration()
 
     photo = utils.divide(photo, calibration.shape)
     temp_sky = np.mean(photo, axis = (2, 3))
@@ -33,4 +41,8 @@ def run(manager: IOManager):
     print('Fogginess: {}'.format(total_fogginess))
     visualizer.show()
 
-run(BlankIOManager())
+run(
+    FITSPhotoManager(),
+    BlankTemperatureManager(),
+    StandartCalibrationManager() 
+)
