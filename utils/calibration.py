@@ -1,5 +1,7 @@
 from typing import Tuple
+
 import numpy as np
+
 
 class ThresholdLine:
     def __init__(self, k: np.ndarray, b: np.ndarray) -> None:

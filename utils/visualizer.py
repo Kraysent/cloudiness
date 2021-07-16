@@ -1,10 +1,13 @@
 from typing import Callable, Tuple
+
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-import utils.utils as utils
 import numpy as np
 from matplotlib.axes import Axes
+
+import utils.utils as utils
 from utils.calibration import ThresholdLine
+
 
 class Visualizer:
     def __init__(self, draw_fragment: Tuple[int, int] = None):
@@ -28,7 +31,7 @@ class Visualizer:
             if clogscale:
                 norm = mpl.colors.LogNorm()
 
-            def setter(axes, ix, iy):
+            def action(axes, ix, iy):
                 (_, temps_sky) = utils.get_field_from_pickle(filename, f'TEMP_SKY_{ix}_{iy}')
                 im = axes.scatter(
                     temps_sky, temps, 
@@ -38,13 +41,12 @@ class Visualizer:
                 axes.figure.colorbar(im, ax = axes)
 
         else:
-            def setter(axes, ix, iy):
+            def action(axes, ix, iy):
                 (_, temps_sky) = utils.get_field_from_pickle(filename, f'TEMP_SKY_{ix}_{iy}')
                 axes.plot(temps_sky, temps, 'ro', markersize = markersize)
 
-        self.do_for_each_axes(setter)
+        self.do_for_each_axes(action)
 
-    
     def do_for_each_axes(self, action: Callable[[Axes, int, int], None]):
         if self.fragment != None:
             action(self.axes, self.fragment[0], self.fragment[1])
@@ -64,12 +66,11 @@ class Visualizer:
         self.do_for_each_axes(action)
 
     def set_lims(self, xlim: Tuple[int, int], ylim: Tuple[int, int]):
-        def setter(axes, ix, iy):
+        def action(axes, ix, iy):
             axes.set_xlim(xlim)
             axes.set_ylim(ylim)
 
-        self.do_for_each_axes(setter)
+        self.do_for_each_axes(action)
 
     def show(self):
-        # plt.colorbar()
         plt.show()

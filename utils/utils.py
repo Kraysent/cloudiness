@@ -1,4 +1,3 @@
-# from utils.visualizer import Visualizer
 import numpy as np
 import pandas as pd
 
@@ -24,9 +23,4 @@ def get_field_from_pickle(filename: str, field: str) -> tuple:
     res = data[field].to_numpy()
 
     return (dates, res)
-
-# def draw_calibration_data(filename: str, clogscale: bool = True):
-#     visualizer = Visualizer((4, 4))
-#     visualizer.scatter_calibration(filename)
-#     visualizer.set_lims((-45, 10), (-25, 20))
-#     visualizer.show()
+    

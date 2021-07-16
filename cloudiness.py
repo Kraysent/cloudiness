@@ -1,7 +1,8 @@
-from utils.visualizer import Visualizer
 import numpy as np
-from utils.iomanager import IOManager, BlankIOManager
+
 from utils import utils
+from utils.iomanager import BlankIOManager, IOManager
+from utils.visualizer import Visualizer
 
 
 def run(manager: IOManager):
