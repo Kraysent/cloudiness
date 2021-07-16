@@ -4,8 +4,8 @@ from utils import utils
 from utils.calibration_manager import (CalibrationManager,
                                        StandartCalibrationManager)
 from utils.photo_manager import FITSPhotoManager, PhotoManager
-from utils.temperature_manager import (BlankTemperatureManager,
-                                       TemperatureManager)
+from utils.temperature_manager import (TemperatureManager, 
+                                       WebTemperatureManager)
 from utils.visualizer import Visualizer
 
 
@@ -43,6 +43,6 @@ def run(
 
 run(
     FITSPhotoManager(),
-    BlankTemperatureManager(),
+    WebTemperatureManager(),
     StandartCalibrationManager() 
 )

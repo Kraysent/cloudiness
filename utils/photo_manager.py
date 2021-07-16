@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 
 import numpy as np
 
-from utils.fitsio import FITSIO
+from iotools.fitsio import FITSIO
 
 
 class PhotoManager(ABC):
