@@ -60,7 +60,10 @@ class Visualizer:
 
         return results
 
-    def scatter_calibration(self, filename: str, coloring: bool = True, clogscale: bool = True, markersize: float = 0.1):
+    def scatter_calibration(self, 
+        filename: str, coloring: bool = True, clogscale: bool = True, 
+        markersize: float = 0.1, colorbarlabel: str = ''
+    ):
         (_, temps) = pickleio.get_field_from_pickle(filename, 'TEMP')
 
         if coloring:
@@ -71,14 +74,14 @@ class Visualizer:
             if clogscale:
                 norm = mpl.colors.LogNorm()
 
-            def action(axes, ix, iy):
+            def action(axes: Axes, ix: int, iy: int):
                 (_, temps_sky) = pickleio.get_field_from_pickle(filename, f'TEMP_SKY_{ix}_{iy}')
                 im = axes.scatter(
                     temps_sky, temps, 
                     s = markersize, c = temps_sky_disp, 
                     cmap = 'plasma', norm = norm
                 )
-                axes.figure.colorbar(im, ax = axes)
+                axes.figure.colorbar(im, ax = axes, label = colorbarlabel)
 
         else:
             def action(axes, ix, iy):
@@ -86,6 +89,13 @@ class Visualizer:
                 axes.plot(temps_sky, temps, 'ro', markersize = markersize)
 
         self.do_for_each_axes(action)
+
+    def set_labels_for_axes(self, xlabel: str, ylabel: str):
+        self.do_for_each_axes(lambda axes, ix, iy: axes.set_xlabel(xlabel))
+        self.do_for_each_axes(lambda axes, ix, iy: axes.set_ylabel(ylabel))
+
+    def set_title(self, title: str):
+        plt.suptitle(title)
 
     def plot_point(self, x, y):
         action = lambda axes, ix, iy: axes.plot(x[ix, iy], y, 'ro')

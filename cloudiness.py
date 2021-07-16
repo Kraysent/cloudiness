@@ -28,11 +28,14 @@ def run(
     visualizer = Visualizer((4, 4))
     xlim = (-45, 10)
     ylim = (-25, 20)
-    visualizer.scatter_calibration('pickles/res.pkl')
+    visualizer.scatter_calibration('pickles/res.pkl', 
+        colorbarlabel = 'Standart deviation of the observatory fragment')
     visualizer.plot_line(calibration.clear_line, xlim[0], xlim[1])
     visualizer.plot_line(calibration.cloud_line, xlim[0], xlim[1])
     visualizer.plot_line(calibration.fog_line, xlim[0], xlim[1])
     visualizer.plot_point(temp_sky, temp)
+    visualizer.set_labels_for_axes('Temperature of the sky, Celcius', 'Temperature of the air, Celcius')
+    visualizer.set_title('Temperature-temperature relation for cloudiness')
     visualizer.set_lims(xlim, ylim)
 
     weights = calibration.get_frame_weights()
