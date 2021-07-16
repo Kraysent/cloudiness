@@ -3,7 +3,7 @@ from typing import Any, Callable, Tuple
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
-from iotools.pickleio import PickleIO
+from iotools import pickleio
 from matplotlib.axes import Axes
 
 from utils.calibration import ThresholdLine
@@ -61,10 +61,10 @@ class Visualizer:
         return results
 
     def scatter_calibration(self, filename: str, coloring: bool = True, clogscale: bool = True, markersize: float = 0.1):
-        (_, temps) = PickleIO.get_field_from_pickle(filename, 'TEMP')
+        (_, temps) = pickleio.get_field_from_pickle(filename, 'TEMP')
 
         if coloring:
-            (_, temps_sky_disp) = PickleIO.get_field_from_pickle(filename, 'STD_1_2')
+            (_, temps_sky_disp) = pickleio.get_field_from_pickle(filename, 'STD_1_2')
 
             norm = None
         
@@ -72,7 +72,7 @@ class Visualizer:
                 norm = mpl.colors.LogNorm()
 
             def action(axes, ix, iy):
-                (_, temps_sky) = PickleIO.get_field_from_pickle(filename, f'TEMP_SKY_{ix}_{iy}')
+                (_, temps_sky) = pickleio.get_field_from_pickle(filename, f'TEMP_SKY_{ix}_{iy}')
                 im = axes.scatter(
                     temps_sky, temps, 
                     s = markersize, c = temps_sky_disp, 
@@ -82,7 +82,7 @@ class Visualizer:
 
         else:
             def action(axes, ix, iy):
-                (_, temps_sky) = PickleIO.get_field_from_pickle(filename, f'TEMP_SKY_{ix}_{iy}')
+                (_, temps_sky) = pickleio.get_field_from_pickle(filename, f'TEMP_SKY_{ix}_{iy}')
                 axes.plot(temps_sky, temps, 'ro', markersize = markersize)
 
         self.do_for_each_axes(action)

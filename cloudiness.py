@@ -1,5 +1,5 @@
 from datetime import timedelta
-from iotools.pickleio import PickleIO
+from iotools import pickleio
 import numpy as np
 
 from utils import utils
@@ -79,7 +79,7 @@ def calibrate(manager, dump_filename: str):
         dump['TEMP_SKY_{}_{}'.format(ix, iy)] = mean_intensity[:, ix, iy][filter]
         dump['STD_{}_{}'.format(ix, iy)] = std_intensity[:, ix, iy][filter]
 
-    PickleIO.dump_dict(dump_filename, dump)
+    pickleio.dump_dict(dump_filename, dump)
 
     visualizer = Visualizer((4, 4))
     visualizer.scatter_calibration(dump_filename, coloring = False)

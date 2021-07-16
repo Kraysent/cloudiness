@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 
 import numpy as np
 
-from iotools.fitsio import FITSIO
+from iotools import fitsio
 
 
 class PhotoManager(ABC):
@@ -16,4 +16,4 @@ class BlankPhotoManager(PhotoManager):
 
 class FITSPhotoManager(PhotoManager):
     def get_current_photo(self) -> np.ndarray:
-        return FITSIO.get_data('input/current.fits') / 10
+        return fitsio.get_data('input/current.fits') / 10
