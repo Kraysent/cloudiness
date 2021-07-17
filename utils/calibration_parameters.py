@@ -19,7 +19,7 @@ class ThresholdLine:
     def shape(self):
         return self.k.shape
 
-class Calibration:
+class CalibrationParameters:
     def __init__(self, shape: Tuple[int, int]) -> None:
         self.clear_line = ThresholdLine(np.zeros(shape), np.zeros(shape))
         self.cloud_line = ThresholdLine(np.zeros(shape), np.zeros(shape))
@@ -31,8 +31,8 @@ class Calibration:
         cloud_line: ThresholdLine, 
         fog_line: ThresholdLine, 
         weights: np.ndarray
-    ) -> 'Calibration':
-        res = Calibration(clear_line.shape)
+    ) -> 'CalibrationParameters':
+        res = CalibrationParameters(clear_line.shape)
         res.clear_line = clear_line
         res.cloud_line = cloud_line
         res.fog_line = fog_line
@@ -58,7 +58,7 @@ class Calibration:
     def get_frame_weights(self):
         return self.weights
 
-    def read_from_csv(filenames: list) -> 'Calibration':
+    def read_from_csv(filenames: list) -> 'CalibrationParameters':
         if len(filenames) < 7:
             raise RuntimeError('Not enough filenames provided')
             
@@ -67,7 +67,7 @@ class Calibration:
         fog_line = ThresholdLine.read_from_csv(filenames[4], filenames[5])
         weights = np.genfromtxt(filenames[6], delimiter = ',')
 
-        return Calibration.init_with_params(clear_line, cloud_line, fog_line, weights)
+        return CalibrationParameters.init_with_params(clear_line, cloud_line, fog_line, weights)
         
     @property
     def shape(self):

@@ -1,16 +1,16 @@
 from abc import ABC, abstractmethod
 
-from utils.calibration import Calibration
+from utils.calibration_parameters import CalibrationParameters
 
 
 class CalibrationManager(ABC):
     @abstractmethod
-    def get_current_calibration(self) -> Calibration:
+    def get_current_calibration(self) -> CalibrationParameters:
         pass
 
 class StandartCalibrationManager(CalibrationManager):
-    def get_current_calibration(self) -> Calibration:
-        return Calibration.read_from_csv(
+    def get_current_calibration(self) -> CalibrationParameters:
+        return CalibrationParameters.read_from_csv(
             ['calibration/k_clear.csv', 'calibration/b_clear.csv',
             'calibration/k_cloud.csv', 'calibration/b_cloud.csv',
             'calibration/k_fog.csv', 'calibration/b_fog.csv',

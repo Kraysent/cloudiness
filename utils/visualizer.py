@@ -6,7 +6,7 @@ import numpy as np
 from iotools import pickleio
 from matplotlib.axes import Axes
 
-from utils.calibration import ThresholdLine
+from utils.calibration_parameters import ThresholdLine
 
 
 class LineBuilder:

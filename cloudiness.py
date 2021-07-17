@@ -54,8 +54,7 @@ def calibrate(manager, dump_filename: str):
 
     for i in range(len(photo_dates)):
         if i % 1000 == 0: print(i)
-        index = manager.find_nearest_date(photo_dates[i], temp_dates)
-        diff = photo_dates[i] - temp_dates[index]
+        (index, diff) = utils.find_nearest_date(photo_dates[i], temp_dates)
 
         if diff < timedelta(minutes = 10):
             matched_temps[i] = temps[index]
@@ -67,20 +66,20 @@ def calibrate(manager, dump_filename: str):
     matched_temps = matched_temps[filter]
 
     division_shape = (8, 8)
-    photo_data = utils.divide_cube(photo_data, division_shape)
+    photo_data = utils.divide_cube(photo_data[filter], division_shape)
     (mean_intensity, std_intensity) = manager.get_statistical_parameters(photo_data)
 
-    for ix, iy in np.ndindex(division_shape):
-        mean_intensity[:, ix, iy] = mean_intensity[:, ix, iy][filter]
-        std_intensity[:, ix, iy] = std_intensity[:, ix, iy][filter]
+    # for ix, iy in np.ndindex(division_shape):
+    #     mean_intensity[:, ix, iy] = mean_intensity[:, ix, iy][filter]
+    #     std_intensity[:, ix, iy] = std_intensity[:, ix, iy][filter]
 
     dump = {}
     dump['DATE'] = photo_dates
     dump['TEMP'] = matched_temps
 
     for ix, iy in np.ndindex(division_shape):
-        dump['TEMP_SKY_{}_{}'.format(ix, iy)] = mean_intensity[:, ix, iy][filter]
-        dump['STD_{}_{}'.format(ix, iy)] = std_intensity[:, ix, iy][filter]
+        dump['TEMP_SKY_{}_{}'.format(ix, iy)] = mean_intensity[:, ix, iy]
+        dump['STD_{}_{}'.format(ix, iy)] = std_intensity[:, ix, iy]
 
     pickleio.dump_dict(dump_filename, dump)
 
