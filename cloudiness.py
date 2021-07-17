@@ -6,8 +6,8 @@ from iotools import pickleio
 from utils import utils
 from utils.calibration_parameters_manager import (CalibrationParametersManager,
                                                   StandartCalibrationManager)
-from utils.photo_manager import FITSPhotoManager, PhotoManager
-from utils.temperature_manager import TemperatureManager, WebTemperatureManager
+from utils.photo_manager import BlankPhotoManager, FITSPhotoManager, PhotoManager
+from utils.temperature_manager import BlankTemperatureManager, TemperatureManager, WebTemperatureManager
 from utils.visualizer import Visualizer
 
 
@@ -46,9 +46,13 @@ def run(
     print('Fogginess: {}'.format(total_fogginess))
     visualizer.show()
 
-def calibrate(manager, dump_filename: str):
-    photo_data, photo_dates = manager.get_sample_data()
-    temps, temp_dates = manager.get_temperature_data()
+def extract_calibration_data(
+    photo_manager: PhotoManager, 
+    temperature_manager: TemperatureManager, 
+    dump_filename: str
+):
+    photo_dates, photo_data = photo_manager.get_historical_photo_data()
+    temp_dates, temps = temperature_manager.get_historical_temperature_data()
 
     matched_temps = np.zeros(len(photo_dates))
 
@@ -67,11 +71,7 @@ def calibrate(manager, dump_filename: str):
 
     division_shape = (8, 8)
     photo_data = utils.divide_cube(photo_data[filter], division_shape)
-    (mean_intensity, std_intensity) = manager.get_statistical_parameters(photo_data)
-
-    # for ix, iy in np.ndindex(division_shape):
-    #     mean_intensity[:, ix, iy] = mean_intensity[:, ix, iy][filter]
-    #     std_intensity[:, ix, iy] = std_intensity[:, ix, iy][filter]
+    (mean_intensity, std_intensity) = utils.get_statistical_parameters(photo_data)
 
     dump = {}
     dump['DATE'] = photo_dates
@@ -83,15 +83,19 @@ def calibrate(manager, dump_filename: str):
 
     pickleio.dump_dict(dump_filename, dump)
 
-    visualizer = Visualizer((4, 4))
-    visualizer.scatter_calibration(dump_filename, coloring = False)
-    visualizer.add_linebuilder()
-    visualizer.show()
+def get_calibration_parameters(dump_filename: str):
+    for ix, iy in np.ndindex((8, 8)):
+        visualizer = Visualizer((ix, iy))
+        visualizer.set_title(f'Plot {ix}-{iy}')
+        visualizer.scatter_calibration(dump_filename, coloring = False)
+        visualizer.add_linebuilder()
+        visualizer.show()
     
-# calibrate(None, 'pickles/105000.pkl')
+extract_calibration_data(FITSPhotoManager(), WebTemperatureManager(), 'pickles/example.pkl')
+get_calibration_parameters('pickles/example.pkl')
 
-run(
-    FITSPhotoManager(),
-    WebTemperatureManager(),
-    StandartCalibrationManager() 
-)
+# run(
+#     FITSPhotoManager(),
+#     WebTemperatureManager(),
+#     StandartCalibrationManager() 
+# )

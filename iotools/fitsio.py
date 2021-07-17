@@ -17,3 +17,4 @@ def get_data(filename: str, headers: list = []):
         return (data, output_headers)
     else: 
         return data
+        
