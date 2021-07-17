@@ -1,20 +1,20 @@
 from datetime import timedelta
-from iotools import pickleio
+
 import numpy as np
 
+from iotools import pickleio
 from utils import utils
-from utils.calibration_manager import (CalibrationManager,
-                                       StandartCalibrationManager)
+from utils.calibration_parameters_manager import (CalibrationParametersManager,
+                                                  StandartCalibrationManager)
 from utils.photo_manager import FITSPhotoManager, PhotoManager
-from utils.temperature_manager import (TemperatureManager, 
-                                       WebTemperatureManager)
+from utils.temperature_manager import TemperatureManager, WebTemperatureManager
 from utils.visualizer import Visualizer
 
 
 def run(
     photo_manager: PhotoManager, 
     temp_manager: TemperatureManager, 
-    calib_manager: CalibrationManager
+    calib_manager: CalibrationParametersManager
 ):
     photo = photo_manager.get_current_photo()
     temp = temp_manager.get_current_temperature()
