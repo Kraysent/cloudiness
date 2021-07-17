@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Any, Callable, Tuple
 
 import matplotlib as mpl
@@ -7,6 +8,7 @@ from iotools import pickleio
 from matplotlib.axes import Axes
 
 from utils.calibration_parameters import ThresholdLine
+from utils import utils
 
 
 class LineBuilder:
@@ -64,10 +66,10 @@ class Visualizer:
         filename: str, coloring: bool = True, clogscale: bool = True, 
         markersize: float = 0.1, colorbarlabel: str = ''
     ):
-        (_, temps) = pickleio.get_field(filename, 'TEMP')
+        temps = pickleio.get_field(filename, 'TEMP')
 
         if coloring:
-            (_, temps_sky_disp) = pickleio.get_field(filename, 'STD_1_2')
+            temps_sky_disp = pickleio.get_field(filename, 'STD_1_2')
 
             norm = None
         
@@ -75,11 +77,12 @@ class Visualizer:
                 norm = mpl.colors.LogNorm()
 
             def action(axes: Axes, ix: int, iy: int):
-                (_, temps_sky) = pickleio.get_field(filename, f'TEMP_SKY_{ix}_{iy}')
+                temps_sky = pickleio.get_field(filename, f'TEMP_SKY_{ix}_{iy}')
                 im = axes.scatter(
                     temps_sky, temps, 
                     s = markersize, c = temps_sky_disp, 
-                    cmap = 'plasma', norm = norm
+                    cmap = 'plasma', norm = norm,
+                    picker = 2
                 )
                 cbar = axes.figure.colorbar(im, ax = axes, label = colorbarlabel)
                 cbar.set_ticks([0.5, 1, 2, 4, 8])
@@ -87,7 +90,7 @@ class Visualizer:
 
         else:
             def action(axes, ix, iy):
-                (_, temps_sky) = pickleio.get_field(filename, f'TEMP_SKY_{ix}_{iy}')
+                temps_sky = pickleio.get_field(filename, f'TEMP_SKY_{ix}_{iy}')
                 axes.plot(temps_sky, temps, 'ro', markersize = markersize)
 
         self.do_for_each_axes(action)
@@ -114,6 +117,19 @@ class Visualizer:
         lines = self.do_for_each_axes(lambda axes, x, y: axes.plot([0], [0], 'g-'))
         for line in lines:
             LineBuilder(line[0])
+
+    def add_picker(self, dates):
+        self.dates = dates
+
+        def on_pick(event):
+            # artist = event.artist
+            ind = event.ind[0]
+            print(datetime.strftime(self.dates[ind], utils.fits_filename_format))
+
+        def action(axes: Axes, ix: int, iy: int):
+            axes.figure.canvas.mpl_connect('pick_event', on_pick)
+
+        self.do_for_each_axes(action)
 
     def set_lims(self, xlim: Tuple[int, int], ylim: Tuple[int, int]):
         def action(axes, ix, iy):

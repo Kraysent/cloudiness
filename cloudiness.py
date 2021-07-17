@@ -19,6 +19,7 @@ def run(
     photo = photo_manager.get_current_photo()
     temp = temp_manager.get_current_temperature()
     calibration = calib_manager.get_current_calibration()
+    dates = calib_manager.get_list_of_dates()
 
     photo = utils.divide_plane(photo, calibration.shape)
     temp_sky = np.mean(photo, axis = (2, 3))
@@ -37,6 +38,7 @@ def run(
     visualizer.set_labels_for_axes('Temperature of the sky, Celcius', 'Temperature of the air, Celcius')
     visualizer.set_title('Temperature-temperature relation for cloudiness')
     visualizer.set_lims(xlim, ylim)
+    visualizer.add_picker(dates)
 
     weights = calibration.get_frame_weights()
     total_cloudiness = np.average(cloudiness, weights = weights)

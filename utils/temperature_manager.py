@@ -34,6 +34,7 @@ class WebTemperatureManager(TemperatureManager):
         return float(res['TOUT'])
 
     def get_historical_temperature_data(self) -> Tuple[np.ndarray, np.ndarray]:
-        (dates_temp, temps) = pickleio.get_field('temperature/all_data.pkl', 'TEMP')
+        temps = pickleio.get_field('temperature/all_data.pkl', 'TEMP')
+        dates_temp = pickleio.get_field('temperature/all_data.pkl', 'DATE')
         dates_temp = dates_temp.to_pydatetime().astype(np.datetime64)
         return (dates_temp, temps)
