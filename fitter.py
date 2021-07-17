@@ -6,52 +6,6 @@ filename = 'pickles/105000.pkl'
 dates = PickleIO.get_field_from_pickle(filename, 'DATE')[1]
 temps = PickleIO.get_field_from_pickle(filename, 'TEMP')[1]
 
-class LineBuilder:
-    def __init__(self, line):
-        self.first = True
-        self.xs, self.ys = list(line.get_xdata()), list(line.get_ydata())
-        self.line = line
-        self.cid = self.line.figure.canvas.mpl_connect('button_press_event', self)
-
-    def __call__(self, event):
-        print('Click: ({}, {})'.format(event.xdata, event.ydata))
-        self.xs.append(event.xdata)
-        self.ys.append(event.ydata)
-
-        if self.first:
-            self.xs = [event.xdata]
-            self.ys = [event.ydata]
-            self.first = False
-        else:
-            self.xs.append(event.xdata)
-            self.ys.append(event.ydata)
-            x1, y1 = self.xs[0], self.ys[0]
-            x2, y2 = self.xs[1], self.ys[1]
-            k = (y2 - y1) / (x2 - x1)
-            b = (x2 * y1 - x1 * y2) / (x2 - x1)
-            print('k = {}\tb = {}'.format(np.round(k, 2), np.round(b, 2)))
-            self.first = True
-
-        self.line.set_data(self.xs, self.ys)
-        self.line.figure.canvas.draw()
-
-def manual_fit():
-    for i in range(3, 8):
-        for j in range(8):
-            temps_sky = PickleIO.get_field_from_pickle(filename, 'TEMP_SKY_{}_{}'.format(i, j))[1]
-            fig, ax = plt.subplots()
-            plt.suptitle('TEMP_SKY_{}_{}'.format(i, j))
-            plt.xlabel('TEMP_SKY_{}_{}'.format(i, j))
-            plt.ylabel('TEMP')
-
-            ax.plot(temps_sky, temps, 'ro', markersize = 0.1)
-            line, = ax.plot([0], [0], 'g-')
-            builder = LineBuilder(line)
-
-            ax.set_xlim(-45, 10)
-            ax.set_ylim(-25, 15)
-            plt.show()
-
 def automatic_fit():
     def first_fraction_elements_indexes(array: np.ndarray, max: bool, fraction: int):
         num_of_points = int(fraction * len(array))
@@ -114,4 +68,4 @@ def automatic_fit():
     plt.ylim(-25, 15)
     plt.show()
 
-manual_fit()
+automatic_fit()

@@ -8,7 +8,7 @@ class CalibrationParametersManager(ABC):
     def get_current_calibration(self) -> CalibrationParameters:
         pass
 
-class StandartCalibrationManager(CalibrationParametersManager):
+class StandartCalibrationParametersManager(CalibrationParametersManager):
     def get_current_calibration(self) -> CalibrationParameters:
         return CalibrationParameters.read_from_csv(
             ['calibration/k_clear.csv', 'calibration/b_clear.csv',

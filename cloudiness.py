@@ -5,7 +5,7 @@ import numpy as np
 from iotools import pickleio
 from utils import utils
 from utils.calibration_parameters_manager import (CalibrationParametersManager,
-                                                  StandartCalibrationManager)
+                                                  StandartCalibrationParametersManager)
 from utils.photo_manager import BlankPhotoManager, FITSPhotoManager, PhotoManager
 from utils.temperature_manager import BlankTemperatureManager, TemperatureManager, WebTemperatureManager
 from utils.visualizer import Visualizer
@@ -91,11 +91,11 @@ def get_calibration_parameters(dump_filename: str):
         visualizer.add_linebuilder()
         visualizer.show()
     
-extract_calibration_data(FITSPhotoManager(), WebTemperatureManager(), 'pickles/example.pkl')
-get_calibration_parameters('pickles/example.pkl')
+# extract_calibration_data(FITSPhotoManager(), WebTemperatureManager(), 'pickles/example.pkl')
+# get_calibration_parameters('pickles/example.pkl')
 
-# run(
-#     FITSPhotoManager(),
-#     WebTemperatureManager(),
-#     StandartCalibrationManager() 
-# )
+run(
+    FITSPhotoManager(),
+    WebTemperatureManager(),
+    StandartCalibrationParametersManager() 
+)

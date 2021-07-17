@@ -81,7 +81,9 @@ class Visualizer:
                     s = markersize, c = temps_sky_disp, 
                     cmap = 'plasma', norm = norm
                 )
-                axes.figure.colorbar(im, ax = axes, label = colorbarlabel)
+                cbar = axes.figure.colorbar(im, ax = axes, label = colorbarlabel)
+                cbar.set_ticks([0.5, 1, 2, 4, 8])
+                cbar.set_ticklabels(['$2^{-1}$', '$2^0$', '$2^1$', '$2^2$', '$2^3$'])
 
         else:
             def action(axes, ix, iy):

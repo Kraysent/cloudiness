@@ -5,8 +5,6 @@ from typing import Tuple
 import numpy as np
 from iotools import jsonio, webio, pickleio
 
-from utils import utils
-
 
 class TemperatureManager(ABC):
     @abstractmethod
