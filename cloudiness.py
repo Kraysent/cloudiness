@@ -1,4 +1,6 @@
 from datetime import timedelta
+from typing import Tuple
+from utils.calibration_parameters import CalibrationParameters
 
 import numpy as np
 
@@ -10,6 +12,24 @@ from utils.photo_manager import BlankPhotoManager, FITSPhotoManager, PhotoManage
 from utils.temperature_manager import BlankTemperatureManager, TemperatureManager, WebTemperatureManager
 from utils.visualizer import Visualizer
 
+def get_temp_sky(photo: np.ndarray, shape: Tuple[int, int]) -> np.ndarray:
+    photo = utils.divide_plane(photo, shape)
+    temp_sky = np.mean(photo, axis = (2, 3))
+
+    return temp_sky
+
+def get_cloudiness_and_fogginess(
+    photo: np.ndarray, 
+    temp: float, 
+    calibration: CalibrationParameters, draw: bool = False
+    ) -> Tuple[float, float]:
+    temp_sky = get_temp_sky(photo, calibration.shape)
+    cloudiness, fogginess = calibration.get_cloudiness_and_fogginess(temp_sky, temp)
+    weights = calibration.get_frame_weights()
+    total_cloudiness = np.average(cloudiness, weights = weights)
+    total_fogginess  = np.average(fogginess, weights = weights)
+
+    return (total_cloudiness, total_fogginess)
 
 def run(
     photo_manager: PhotoManager, 
@@ -21,14 +41,11 @@ def run(
     calibration = calib_manager.get_current_calibration()
     dates = calib_manager.get_list_of_dates()
 
-    photo = utils.divide_plane(photo, calibration.shape)
-    temp_sky = np.mean(photo, axis = (2, 3))
-
-    cloudiness, fogginess = calibration.get_cloudiness_and_fogginess(temp_sky, temp)
+    temp_sky = get_temp_sky(photo, calibration.shape)
 
     visualizer = Visualizer((4, 4))
     xlim = (-45, 10)
-    ylim = (-25, 20)
+    ylim = (-25, 25)
     visualizer.scatter_calibration('pickles/res.pkl', 
         colorbarlabel = 'Standart deviation of the observatory fragment')
     visualizer.plot_line(calibration.clear_line, xlim[0], xlim[1])
@@ -40,9 +57,7 @@ def run(
     visualizer.set_lims(xlim, ylim)
     visualizer.add_picker(dates)
 
-    weights = calibration.get_frame_weights()
-    total_cloudiness = np.average(cloudiness, weights = weights)
-    total_fogginess  = np.average(fogginess, weights = weights)
+    total_cloudiness, total_fogginess = get_cloudiness_and_fogginess(photo, temp, calibration)
 
     print('Cloudiness: {}'.format(total_cloudiness))
     print('Fogginess: {}'.format(total_fogginess))
@@ -96,8 +111,8 @@ def get_calibration_parameters(dump_filename: str):
 # extract_calibration_data(FITSPhotoManager(), WebTemperatureManager(), 'pickles/example.pkl')
 # get_calibration_parameters('pickles/example.pkl')
 
-run(
-    FITSPhotoManager(),
-    WebTemperatureManager(),
-    StandartCalibrationParametersManager() 
-)
+# run(
+#     FITSPhotoManager('input/current.fits'),
+#     WebTemperatureManager(),
+#     StandartCalibrationParametersManager() 
+# )

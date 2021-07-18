@@ -29,8 +29,11 @@ class BlankPhotoManager(PhotoManager):
         )
 
 class FITSPhotoManager(PhotoManager):
+    def __init__(self, filename: str) -> None:
+        self.filename = filename
+
     def get_current_photo(self) -> np.ndarray:
-        return fitsio.get_data('input/current.fits') / 10
+        return fitsio.get_data(self.filename) / 10
 
     def get_historical_photo_data(self) -> Tuple[np.ndarray, np.ndarray]:
         dirpath = 'maps/'
